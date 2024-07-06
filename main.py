@@ -190,20 +190,20 @@ async def handle_callback(request: Request):
                                 """
                                 Exist group -> delete chat history and use openai api (or gemini api) to summarize it.
                                 """
-                                fdb.delete(chat_store_path, group_id)
                                 chat_history = all_group_data[group_id]
                                 chat_history = parse_chat_hsitory(chat_history)
                                 # response = model.generate_content(f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}')
                                 # suggest_reply = model.generate_content(f'我的身分是{user_name}，請幫我產生一句恰當的回覆\n{response.text}')
                                 response = openai_client.chat.completions.create(
                                     model="gpt-3.5-turbo",
-                                    messages={'role': 'user', 'content': f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}'}
+                                    messages=[{'role': 'user', 'content': f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}'}]
                                 ).choices[0].message
                                 suggest_reply =openai_client.chat.completions.create(
                                     model="gpt-3.5-turbo",
-                                    messages={'role': 'user', 'content': f'我的身分是{user_name}，請幫我產生一句恰當的回覆\n{response}'}
+                                    messages=[{'role': 'user', 'content': f'我的身分是{user_name}，請幫我產生一句恰當的回覆\n{response}'}]
                                 ).choices[0].message
                                 reply_msg = f'{response}\n建議回覆:\n{suggest_reply}'
+                                fdb.delete(chat_store_path, group_id)
             else:
                 """
                 Group usage: for getting messages in group
