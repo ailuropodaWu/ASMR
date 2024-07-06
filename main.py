@@ -28,6 +28,7 @@ from linebot.v3.webhooks import (
 import uvicorn
 import requests
 import google.generativeai as genai
+from openai import OpenAI
 from firebase import firebase
 from typing import List
 
@@ -59,6 +60,8 @@ fdb = firebase.FirebaseApplication(firebase_url, None)
 gemini_key = os.getenv('GEMINI_API_KEY')
 genai.configure(api_key=gemini_key)
 model = genai.GenerativeModel('gemini-1.5-pro')
+
+openai_client = OpenAI()
 
 def parse_chat_hsitory(chat_history: List[dict]):
     ret = ''
@@ -190,8 +193,16 @@ async def handle_callback(request: Request):
                                 fdb.delete(chat_store_path, group_id)
                                 chat_history = all_group_data[group_id]
                                 chat_history = parse_chat_hsitory(chat_history)
-                                response = model.generate_content(f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}')
-                                suggest_reply = model.generate_content(f'我的身分是{user_name}，請幫我產生一句恰當的回覆\n{response.text}')
+                                # response = model.generate_content(f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}')
+                                # suggest_reply = model.generate_content(f'我的身分是{user_name}，請幫我產生一句恰當的回覆\n{response.text}')
+                                response = openai_client.chat.completions.create(
+                                    model="gpt-3.5-turbo",
+                                    messages={'role': 'user', 'content': f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}'}
+                                )
+                                suggest_reply =openai_client.chat.completions.create(
+                                    model="gpt-3.5-turbo",
+                                    messages={'role': 'user', 'content': f'我的身分是{user_name}，請幫我產生一句恰當的回覆\n{response.text}'}
+                                )
                                 reply_msg = f'{response.text}\n建議回覆:\n{suggest_reply.text}'
             else:
                 """
