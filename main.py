@@ -190,6 +190,7 @@ async def handle_callback(request: Request):
                                 """
                                 Exist group -> delete chat history and use openai api (or gemini api) to summarize it.
                                 """
+                                user_name = line_bot_api.get_group_member_profile(group_id, user_id).display_name
                                 chat_history = all_group_data[group_id]
                                 chat_history = parse_chat_hsitory(chat_history)
                                 # response = model.generate_content(f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}')
