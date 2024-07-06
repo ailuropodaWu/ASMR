@@ -110,7 +110,7 @@ async def handle_callback(request: Request):
             message_sender = line_bot_api.get_group_member_profile(group_id, user_id).display_name
 
             if msg_type == 'text':
-                fdb.put(chat_store_path, f'{group_id}', {message_sender: text}')
+                fdb.put(chat_store_path, f'{group_id}', {message_sender: text})
                 
         await line_bot_api.reply_message(
                 ReplyMessageRequest(
