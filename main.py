@@ -114,7 +114,7 @@ async def handle_callback(request: Request):
                     accout_path = ACCOUNT_PATH
                     accounts_list = get_all_acounts()
                     print(accounts_list)
-                    if accout in accounts_list:
+                    if user_id in accounts_list:
                         reply_msg = "已啟用"
                     else:
                         accounts_list.append(user_id)
