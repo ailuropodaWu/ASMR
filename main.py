@@ -91,6 +91,7 @@ async def handle_callback(request: Request):
         msg_type = event.message.type
         logger.info(msg_type)
         reply_msg = None
+        reply_img = []
         if event.source.type != 'group':
             """
             Personal usage: to summarize, reply to for the group messagges
@@ -178,13 +179,8 @@ async def handle_callback(request: Request):
                         at_plot = plot_at_count(at_all, at_person)
                         
                         at_plot_url = save_to_gcs(f'{user_id}.jpg', at_plot)
-                        line_bot_api.reply_message(
-                                        ReplyMessageRequest(
-                                            reply_token=event.reply_token,
-                                            messages=[ImageMessage(originalContentUrl=at_plot_url, previewImageUrl=at_plot_url)]
-                                        ))
                         logger.info(f"@_url: {at_plot_url}")
-                        
+                        reply_img.append(ImageMessage(originalContentUrl=at_plot_url, previewImageUrl=at_plot_url))
                         reply_msg = f"@ALL: {at_all}次, @YOU: {at_person}次\n {at_messages}"
                 state = -1
             else:
@@ -253,11 +249,7 @@ async def handle_callback(request: Request):
                                 max_reply = 5
                                 cnt = 0
                                 for img_url in unread_img:
-                                    line_bot_api.reply_message(
-                                        ReplyMessageRequest(
-                                            reply_token=event.reply_token,
-                                            messages=[ImageMessage(originalContentUrl=img_url, previewImageUrl=img_url)]
-                                        ))
+                                    reply_img.append(ImageMessage(originalContentUrl=img_url, previewImageUrl=img_url))
                                     cnt += 1
                                     if cnt == max_reply:
                                         break
@@ -276,11 +268,16 @@ async def handle_callback(request: Request):
             """
             Handle personal reply, menu...
             """
+            messages = []
             if reply_msg is not None:
+                messages.append(TextMessage(text=reply_msg))
+            if len(reply_img) != 0:
+                messages.extend(reply_img)
+            if len(messages) != 0:
                 line_bot_api.reply_message(
                     ReplyMessageRequest(
                         reply_token=event.reply_token,
-                        messages=[TextMessage(text=reply_msg)]
+                        messages=messages
                     ))
             fdb.put_async(state_url, None, state)
         else:
