@@ -95,6 +95,7 @@ async def handle_callback(request: Request):
     )
     rich_menu_response = line_bot_api.create_rich_menu(rich_menu_request)
     rich_menu_id = rich_menu_response.rich_menu_id
+    line_bot_api.set_default_rich_menu(rich_menu_id)
 
     for event in events:
         logging.info(event)
