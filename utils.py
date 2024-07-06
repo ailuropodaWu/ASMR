@@ -2,6 +2,7 @@ from firebase import firebase
 
 def get_msg_id(fdb: firebase.FirebaseApplication, chat_url):
     msg_ids = fdb.get(chat_url, None)
+    print(msg_ids)
     if len(msg_ids) == 0:
         return 0
     msg_ids = msg_ids.keys().sort()

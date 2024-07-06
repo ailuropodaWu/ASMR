@@ -91,7 +91,7 @@ async def handle_callback(request: Request):
         msg_type = event.message.type
         if event.source.type != 'group':
             # user_chat_path = f'chat/personal/{user_id}'
-            chat_store_path = f'chat/'
+            chat_store_path = f'/'
             all_group_data = fdb.get(chat_store_path, None)
             if all_group_data is None:
                 reply_msg = '沒有任何群組的資料'
@@ -107,8 +107,9 @@ async def handle_callback(request: Request):
                     reply_msg = f'{chat_history}'
         else:
             group_id = event.source.group_id
-            chat_store_path = f'chat/{group_id}'
+            chat_store_path = f'{group_id}/'
             msg_id = get_msg_id(fdb, chat_store_path)
+            print(msg_id)
             
             message_sender = line_bot_api.get_group_member_profile(group_id, user_id).display_name
 
