@@ -62,6 +62,7 @@ firebase_url = os.getenv('FIREBASE_URL')
 gemini_key = os.getenv('GEMINI_API_KEY')
 
 ACCOUNT_PATH = 'accounts/'
+
 # Initialize the Gemini Pro API
 genai.configure(api_key=gemini_key)
 model = genai.GenerativeModel('gemini-1.5-pro')
@@ -113,7 +114,7 @@ async def handle_callback(request: Request):
                     accout_path = ACCOUNT_PATH
                     accounts_list = get_all_acounts()
                     accounts_list.append(user_id)
-                    fdb.put(accout_path, None, user_id)
+                    fdb.put_async(accout_path, None, user_id)
                     reply_msg = "成功啟用"
                 elif text == '__group__':
                     accounts_list = get_all_acounts()
