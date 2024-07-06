@@ -191,7 +191,7 @@ async def handle_callback(request: Request):
                                 chat_history = all_group_data[group_id]
                                 chat_history = parse_chat_hsitory(chat_history)
                                 response = model.generate_content(f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}')
-                                suggest_reply = model.generate_content(f'請幫我產生一句恰當的回覆\n{response.text}')
+                                suggest_reply = model.generate_content(f'我的身分是{user_name}，請幫我產生一句恰當的回覆\n{response.text}')
                                 reply_msg = f'{response.text}\n建議回覆:\n{suggest_reply.text}'
             else:
                 """
