@@ -88,6 +88,7 @@ async def handle_callback(request: Request):
         if not isinstance(event.message, TextMessageContent):
             continue
         msg_type = event.message.type
+        logger.info(msg_type)
         reply_msg = None
         if event.source.type != 'group':
             """
@@ -277,7 +278,6 @@ async def handle_callback(request: Request):
             """
             Group usage: for getting messages in group
             """
-            logger.info(msg_type)
             if msg_type == 'text':
                 text = event.message.text
             elif msg_type == 'image':
