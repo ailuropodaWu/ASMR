@@ -163,7 +163,8 @@ async def handle_callback(request: Request):
                                         else:
                                             continue
                                         at_messages.append(f'{group_name}: {sender}說 {content}')
-                            reply_msg = f"@ALL: {at_all}次, @YOU: {at_person}次\n{'\n'.join(at_messages)}"
+                                at_messages = '\n'.join(at_messages)
+                            reply_msg = f"@ALL: {at_all}次, @YOU: {at_person}次\n {at_messages}"
                 else:
                     """
                     mainly handle getting summary of specific group
