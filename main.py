@@ -151,16 +151,17 @@ async def handle_callback(request: Request):
                         if all_group_data is None:
                             reply_msg = '沒有任何群組的資料'
                         else:
-                            for group_id, chat_history in all_group_data:
+                            for group_id, chat_history in all_group_data.items():
                                 group_name = line_bot_api.get_group_summary(group_id).group_name
                                 user_name = line_bot_api.get_group_member_profile(group_id, user_id).display_name
-                                for sender, content in chat_history.items():
-                                    if '@All ' in content:
-                                        at_all += 1
-                                        at_messages.append({sender: content})
-                                    elif f'@{user_name} ' in content:
-                                        at_person += 1
-                                        at_messages.append({sender: content})
+                                for chat in chat_history:
+                                    for sender, content in chat.items():
+                                        if '@All ' in content:
+                                            at_all += 1
+                                            at_messages.append({sender: content})
+                                        elif f'@{user_name} ' in content:
+                                            at_person += 1
+                                            at_messages.append({sender: content})
                             reply_msg = f"@ALL: {at_all}次, @YOU: {at_person}次\n{parse_chat_hsitory(at_messages)}"
                 else:
                     """
