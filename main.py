@@ -6,7 +6,6 @@ if os.getenv('API_ENV') != 'production':
     from dotenv import load_dotenv
 
     load_dotenv()
-
 from fastapi import FastAPI, HTTPException, Request
 from datetime import datetime
 from linebot.v3.webhook import WebhookParser
@@ -32,7 +31,6 @@ import google.generativeai as genai
 from firebase import firebase
 from typing import List
 
-from config import rich_menu_config
 
 
 logging.basicConfig(level=os.getenv('LOG', 'WARNING'))
@@ -53,8 +51,8 @@ configuration = Configuration(
     access_token=channel_access_token
 )
 
-async_api_client = ApiClient(configuration)
-line_bot_api = MessagingApi(async_api_client)
+api_client = ApiClient(configuration)
+line_bot_api = MessagingApi(api_client)
 
 parser = WebhookParser(channel_secret)
 
@@ -170,6 +168,10 @@ async def handle_callback(request: Request):
                 group_id = event.source.group_id
                 message_sender = line_bot_api.get_group_member_profile(group_id, user_id).display_name
                 for accout in accounts_list:
+                    try:
+                        line_bot_api.get_group_member_profile(group_id, accout)
+                    except:
+                        continue
                     chat_store_path = f'chat/{accout}'
                     chat_stored = fdb.get(chat_store_path, group_id)
                     
