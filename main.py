@@ -29,6 +29,7 @@ import uvicorn
 import requests
 import google.generativeai as genai
 from firebase import firebase
+from utils import get_msg_id
 
 
 logging.basicConfig(level=os.getenv('LOG', 'WARNING'))
@@ -107,10 +108,12 @@ async def handle_callback(request: Request):
         else:
             group_id = event.source.group_id
             chat_store_path = f'chat/{group_id}'
+            msg_id = get_msg_id(fdb, chat_store_path)
+            
             message_sender = line_bot_api.get_group_member_profile(group_id, user_id).display_name
 
             if msg_type == 'text':
-                fdb.put_async(chat_store_path, None, {message_sender: text})
+                fdb.put_async(chat_store_path, msg_id, {message_sender: text})
                 
         await line_bot_api.reply_message(
                 ReplyMessageRequest(
