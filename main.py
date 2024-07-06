@@ -63,9 +63,8 @@ rich_menu_request = RichMenuRequest(
     # chatBarText=rich_menu_config["chatBarText"],
     # areas=rich_menu_config["areas"]
 )
-rich_menu_response = line_bot_api.create_rich_menu(rich_menu_request)
+rich_menu_response = line_bot_api.create_rich_menu(rich_menu_request, async_req=False)
 rich_menu_id = rich_menu_response.rich_menu_id
-line_bot_api.set_default_rich_menu(rich_menu_id)
 
 parser = WebhookParser(channel_secret)
 
