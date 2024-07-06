@@ -29,7 +29,6 @@ import uvicorn
 import requests
 import google.generativeai as genai
 from firebase import firebase
-from utils import get_msg_id
 
 
 logging.basicConfig(level=os.getenv('LOG', 'WARNING'))
