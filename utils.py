@@ -37,8 +37,8 @@ def parse_chat_hsitory(chat_history: List[dict]):
             ret += f"{sender}傳了 {text}\n"
     return ret
 
-def save_to_gcs(user_id, file_name, data, content_type="image/jpeg"):
-    bucket = client.bucket(user_id)
+def save_to_gcs(file_name, data, content_type="image/jpeg"):
+    bucket = client.bucket('sitcon-hackthon')
     blob = storage.Blob(file_name, bucket)
     blob.upload_from_string(data=data, content_type=content_type)
     return blob.public_url

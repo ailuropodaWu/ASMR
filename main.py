@@ -287,7 +287,7 @@ async def handle_callback(request: Request):
             elif msg_type == 'image':
                 img_id = event.message.id
                 img = line_bot_api_blob.get_message_content(img_id)
-                img_url = save_to_gcs(sender_id, f'{img_id}.jpg', img)
+                img_url = save_to_gcs(f'{img_id}.jpg', img)
                 text = '圖片:' + check_img_content(img)
             for account in accounts_list:
                 try:
