@@ -113,9 +113,10 @@ async def handle_callback(request: Request):
                         """
                         Exist group -> delete chat history and use openai api (or genimi api) to summarize it.
                         """
+                        fdb.delete(chat_store_path, group_id)
                         chat_history = all_group_data[group_id]
                         chat_history = parse_chat_hsitory(chat_history)
-                        response = model.generate_content(f'請幫我將以下的對話紀錄整理成列表式的文字\n{chat_history}')
+                        response = model.generate_content(f'請幫我將以下的對話紀錄整理成列表式的重點\n{chat_history}')
                         reply_msg = response.text
             else:
                 group_id = event.source.group_id
