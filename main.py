@@ -289,17 +289,18 @@ async def handle_callback(request: Request):
                 img = line_bot_api_blob.get_message_content(img_id)
                 img_url = save_to_gcs(f'{img_id}.jpg', img)
                 text = '圖片:' + check_img_content(img)
+                logger.info(img_url, text)
             for account in accounts_list:
                 try:
                     line_bot_api.get_group_member_profile(group_id, account)
                 except:
                     continue
                 chat_store_url = f'chat/{account}'
-                # unread_img_url = f'img/{account}'
+                unread_img_url = f'img/{account}'
                 
                 if account == sender_id:
                     fdb.delete(chat_store_url, group_id)
-                    # fdb.delete(unread_img_url, group_id)
+                    fdb.delete(unread_img_url, group_id)
                     continue
                 
                 chat_stored = fdb.get(chat_store_url, group_id)
