@@ -119,7 +119,7 @@ async def handle_callback(request: Request):
                 """
                 account_path = ACCOUNT_PATH
                 accounts_list = get_all_acounts()
-                print(accounts_list)
+                logger.info(accounts_list)
                 if user_id in accounts_list:
                     reply_msg = "已啟用"
                 else:
@@ -273,12 +273,14 @@ async def handle_callback(request: Request):
             """
             Group usage: for getting messages in group
             """
-            print(msg_type)
+            logger.info(msg_type)
             if msg_type == 'text':
                 text = event.message.text
             elif msg_type == 'image':
+                
                 contentUrl = event.message.content_provider.original_content_url
                 previewUrl = event.message.content_provider.preview_image_url
+                logger.info(contentUrl, previewUrl)
                 text = '圖片:' + check_img_content(contentUrl)
             sender_id = event.source.user_id
             group_id = event.source.group_id
