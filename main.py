@@ -282,7 +282,7 @@ async def handle_callback(request: Request):
                 text = event.message.text
             elif msg_type == 'image':
                 img = line_bot_api_blob.get_message_content(event.message.id)
-                logger.info(img)
+                logger.info('is image')
                 text = '圖片:' + check_img_content(img)
             sender_id = event.source.user_id
             group_id = event.source.group_id

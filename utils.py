@@ -14,11 +14,9 @@ def plot_at_count(at_all_count: dict, at_person_count: dict):
     plt.savefig(buf, format='png')
     return buf.getvalue()
 
-def check_img_content(img):
+def check_img_content(img_data):
     genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-
-    image_data = img
-    image = Image.open(io.BytesIO(image_data))
+    image = Image.open(io.BytesIO(img_data))
 
     model = genai.GenerativeModel('gemini-pro-vision')
     response = model.generate_content([
