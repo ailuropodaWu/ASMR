@@ -107,14 +107,15 @@ async def handle_callback(request: Request):
                     reply_msg = f'{chat_history}'
         else:
             group_id = event.source.group_id
-            chat_store_path = f'{group_id}/'
-            msg_id = get_msg_id(fdb, chat_store_path)
-            print(msg_id)
+            chat_store_path = f'chat/{group_id}'
+            chat_history = fdb.get(chat_store_path)
+            if chat_history is None:
+                chat_history = []
             
             message_sender = line_bot_api.get_group_member_profile(group_id, user_id).display_name
-
+            chat_history.append({message_sender: text})
             if msg_type == 'text':
-                fdb.put_async(chat_store_path, msg_id, {message_sender: text})
+                fdb.put_async(chat_store_path, None, chat_history)
                 
         await line_bot_api.reply_message(
                 ReplyMessageRequest(
