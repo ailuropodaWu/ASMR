@@ -158,11 +158,12 @@ async def handle_callback(request: Request):
                                     for sender, content in chat.items():
                                         if '@All ' in content:
                                             at_all += 1
-                                            at_messages.append({sender: content})
                                         elif f'@{user_name} ' in content:
                                             at_person += 1
-                                            at_messages.append({sender: content})
-                            reply_msg = f"@ALL: {at_all}次, @YOU: {at_person}次\n{parse_chat_hsitory(at_messages)}"
+                                        else:
+                                            continue
+                                        at_messages.append(f'{group_name}: {sender}說 {content}')
+                            reply_msg = f"@ALL: {at_all}次, @YOU: {at_person}次\n{'\n'.join(at_messages)}"
                 else:
                     """
                     mainly handle getting summary of specific group
@@ -189,7 +190,8 @@ async def handle_callback(request: Request):
                                 chat_history = all_group_data[group_id]
                                 chat_history = parse_chat_hsitory(chat_history)
                                 response = model.generate_content(f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}')
-                                reply_msg = response.text
+                                suggest_reply = model.generate_content(f'請幫我產生一句恰當的回覆\n{response.text}')
+                                reply_msg = f'{response.text}\n建議回覆:\n{suggest_reply.text}'
             else:
                 """
                 Group usage: for getting messages in group
