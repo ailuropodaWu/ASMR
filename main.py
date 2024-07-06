@@ -243,12 +243,11 @@ async def handle_callback(request: Request):
                             else:
                                 max_reply = 5
                                 cnt = 0
-                                for img in unread_img:
-                                    contentUrl, previewUrl = img
+                                for img_url in unread_img:
                                     line_bot_api.reply_message(
                                         ReplyMessageRequest(
                                             reply_token=event.reply_token,
-                                            messages=[ImageMessage(originalContentUrl=contentUrl, previewImageUrl=previewUrl)]
+                                            messages=[ImageMessage(originalContentUrl=img_url, previewImageUrl=img_url)]
                                         ))
                                     cnt += 1
                                     if cnt == max_reply:
@@ -282,7 +281,9 @@ async def handle_callback(request: Request):
             if msg_type == 'text':
                 text = event.message.text
             elif msg_type == 'image':
-                img = line_bot_api_blob.get_message_content(event.message.id)
+                img_id = event.message.id
+                img = line_bot_api_blob.get_message_content(img_id)
+                img_url = save_to_gcs(user_id, f'{img_id}.jpg', img)
                 text = '圖片:' + check_img_content(img)
             sender_id = event.source.user_id
             group_id = event.source.group_id
@@ -307,12 +308,12 @@ async def handle_callback(request: Request):
                 chat_stored.append({message_sender: text})
                 fdb.put_async(chat_store_url, group_id, chat_stored)
                 
-                # if msg_type == 'image':
-                #     unread_img = fdb.get(unread_img_url, group_id)
-                #     if unread_img is None:
-                #         unread_img = []
-                #     unread_img.append((contentUrl, previewUrl))
-                #     fdb.put_async(unread_img_url, group_id, unread_img)
+                if msg_type == 'image':
+                    unread_img = fdb.get(unread_img_url, group_id)
+                    if unread_img is None:
+                        unread_img = []
+                    unread_img.append(img_url)
+                    fdb.put_async(unread_img_url, group_id, unread_img)
     return 'OK'
 
 if __name__ == "__main__":

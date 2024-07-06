@@ -2,9 +2,13 @@ import matplotlib.pyplot as plt
 import io
 import os
 import requests
+
+from urllib.request import urlopen
 from PIL import Image
 import google.generativeai as genai
 from typing import List
+from google.cloud import storage
+client = storage.Client()
 
 def plot_at_count(at_all_count: dict, at_person_count: dict):
     plt.bar([i + 1 for i in range(len(at_all_count))], at_all_count.values(), tick_label=at_all_count.keys(), width=0.4, color=['gray'], align='edge')
@@ -32,3 +36,9 @@ def parse_chat_hsitory(chat_history: List[dict]):
         for sender, text in chat.items():
             ret += f"{sender}傳了 {text}\n"
     return ret
+
+def save_to_gcs(user_id, file_name, data, content_type="image/jpeg"):
+    bucket = client.bucket(user_id)
+    blob = storage.Blob(file_name, bucket)
+    blob.upload_from_string(data=data, content_type=content_type)
+    return blob.public_url

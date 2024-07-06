@@ -8,3 +8,4 @@ requests
 git+https://github.com/ozgur/python-firebase
 openai
 matplotlib
+google-cloud-storage
