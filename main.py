@@ -278,17 +278,17 @@ async def handle_callback(request: Request):
             """
             Group usage: for getting messages in group
             """
+            sender_id = event.source.user_id
+            group_id = event.source.group_id
+            message_sender = line_bot_api.get_group_member_profile(group_id, sender_id).display_name
+            accounts_list = get_all_acounts()
             if msg_type == 'text':
                 text = event.message.text
             elif msg_type == 'image':
                 img_id = event.message.id
                 img = line_bot_api_blob.get_message_content(img_id)
-                img_url = save_to_gcs(sender, f'{img_id}.jpg', img)
+                img_url = save_to_gcs(sender_id, f'{img_id}.jpg', img)
                 text = '圖片:' + check_img_content(img)
-            sender_id = event.source.user_id
-            group_id = event.source.group_id
-            message_sender = line_bot_api.get_group_member_profile(group_id, sender_id).display_name
-            accounts_list = get_all_acounts()
             for account in accounts_list:
                 try:
                     line_bot_api.get_group_member_profile(group_id, account)
