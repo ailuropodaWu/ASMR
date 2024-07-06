@@ -32,6 +32,8 @@ from openai import OpenAI
 from firebase import firebase
 from typing import List
 
+from utils import plot_at_count
+
 
 ACCOUNT_PATH = 'accounts/'
 
@@ -71,8 +73,8 @@ def parse_chat_hsitory(chat_history: List[dict]):
     return ret
 
 def get_all_acounts():
-    accout_path = ACCOUNT_PATH
-    accounts = fdb.get(accout_path, None)
+    account_path = ACCOUNT_PATH
+    accounts = fdb.get(account_path, None)
     return [] if accounts is None else accounts
 
 @app.post("/webhooks/line")
@@ -95,8 +97,6 @@ async def handle_callback(request: Request):
         if not isinstance(event.message, TextMessageContent):
             continue
         text = event.message.text
-        user_id = event.source.user_id
-
         msg_type = event.message.type
         if msg_type == 'text':
             reply_msg = None
@@ -104,20 +104,31 @@ async def handle_callback(request: Request):
                 """
                 Personal usage: to summarize, reply to for the group messagges
                 """
+                user_id = event.source.user_id
+                state_url = f'state/{user_id}'
+                buf_url = f'buffer/{user_id}'
+                chat_store_path = f'chat/{user_id}'
+                state = fdb.get(state_url, None)
+                if state is None:
+                    state = -1
+                
                 if text == '__init__':
                     """
                     init the account
                     """
-                    accout_path = ACCOUNT_PATH
+                    account_path = ACCOUNT_PATH
                     accounts_list = get_all_acounts()
                     print(accounts_list)
                     if user_id in accounts_list:
                         reply_msg = "已啟用"
                     else:
                         accounts_list.append(user_id)
-                        fdb.put_async(accout_path, None, accounts_list)
+                        fdb.put_async(account_path, None, accounts_list)
                         reply_msg = "成功啟用"
-                elif text == '__group__':
+                    # Add some basic introduction
+                    reply_msg += "\n" 
+                    state = -1
+                elif text == 'get_groups':
                     """
                     get the group information
                     """
@@ -125,31 +136,22 @@ async def handle_callback(request: Request):
                     if user_id not in accounts_list:
                         reply_msg = "請先啟用"
                     else:
-                        chat_store_path = f'chat/{user_id}'
                         all_group_data = fdb.get(chat_store_path, None)
                         if all_group_data is None:
                             reply_msg = '沒有任何群組的資料'
                         else:
                             group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
                             reply_msg = '\n'.join(list(group_name2id.keys()))
-                elif text == '__reply__':
-                    """
-                    generate reply for specific group
-                    """
+                            reply_msg += '\n\n請選擇群組：'
+                            state = 0
+                elif text == 'summary':
                     accounts_list = get_all_acounts()
-                    if user_id not in accounts_list:
-                        reply_msg = "請先啟用"
-                    else:
-                        pass
-                elif text == '__summary__':
-                    accounts_list = get_all_acounts()
-                    at_all = 0
-                    at_person = 0
+                    at_all = {}
+                    at_person = {}
                     at_messages = []
                     if user_id not in accounts_list:
                         reply_msg = "請先啟用"
                     else:
-                        chat_store_path = f'chat/{user_id}'
                         all_group_data = fdb.get(chat_store_path, None)
                         if all_group_data is None:
                             reply_msg = '沒有任何群組的資料'
@@ -157,30 +159,32 @@ async def handle_callback(request: Request):
                             for group_id, chat_history in all_group_data.items():
                                 group_name = line_bot_api.get_group_summary(group_id).group_name
                                 user_name = line_bot_api.get_group_member_profile(group_id, user_id).display_name
+                                at_all[group_name] = 0
+                                at_person[group_name] = 0
                                 for chat in chat_history:
                                     for sender, content in chat.items():
                                         if '@All ' in content:
-                                            at_all += 1
+                                            at_all[group_name] += 1
                                         elif f'@{user_name} ' in content:
-                                            at_person += 1
+                                            at_person[group_name] += 1
                                         else:
                                             continue
                                         at_messages.append(f'{group_name}: {sender}說 {content}')
                             at_messages = '\n'.join(at_messages)
+                            at_plot = plot_at_count(at_all, at_person)
                             reply_msg = f"@ALL: {at_all}次, @YOU: {at_person}次\n {at_messages}"
+                    state = -1
                 else:
                     """
-                    mainly handle getting summary of specific group
+                    mainly handle different states and choices
                     """
                     accounts_list = get_all_acounts()
                     if user_id not in accounts_list:
                         reply_msg = "請先啟用"
                     else:
-                        chat_store_path = f'chat/{user_id}'
-                        all_group_data = fdb.get(chat_store_path, None)
-                        if all_group_data is None:
-                            reply_msg = '沒有任何群組的資料'
-                        else:
+                        if state == -1:
+                            reply_msg = "請先選擇菜單"
+                        elif state == 0:
                             group_name = text
                             group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
                             group_id = group_name2id.get(group_name, None)
@@ -190,34 +194,85 @@ async def handle_callback(request: Request):
                                 """
                                 Exist group -> delete chat history and use openai api (or gemini api) to summarize it.
                                 """
+                                state = 1
+                                fdb.put_async(buf_url, None, group_id)
+                                # menu of action list
+                                reply_msg = "\n"
+                        elif state == 1:
+                            action_list = [
+                                "delete_history",
+                                "get_summary",
+                                "get_reply",
+                                "get_images",
+                                "last_state",
+                                "finish"
+                            ]
+                            group_id = fdb.get(buf_url, None)
+                            try:
+                                text = action_list[int(text) - 1]
+                            except:
+                                reply_msg = "不要亂選ㄛ!!!"
+                                
+                            if text == "delete_history":
+                                fdb.delete(chat_store_path, group_id)
+                                
+                            elif text == 'get_summary':
                                 user_name = line_bot_api.get_group_member_profile(group_id, user_id).display_name
                                 chat_history = all_group_data[group_id]
                                 chat_history = parse_chat_hsitory(chat_history)
-                                # response = model.generate_content(f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}')
-                                # suggest_reply = model.generate_content(f'我的身分是{user_name}，請幫我產生一句恰當的回覆\n{response.text}')
                                 response = openai_client.chat.completions.create(
                                     model="gpt-3.5-turbo",
-                                    messages=[{'role': 'user', 'content': f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}'}]
+                                    messages=[{'role': 'user', 'content': f'請幫我將以下的對話紀錄內容簡短的整理成重點\n{chat_history}'}]
                                 ).choices[0].message.content
+                                reply_msg = f'{response}'
+                                
+                            elif text == 'get_reply':
                                 suggest_reply =openai_client.chat.completions.create(
                                     model="gpt-3.5-turbo",
-                                    messages=[{'role': 'user', 'content': f'我的身分是{user_name}，請幫我產生一句恰當的回覆\n{response}'}]
+                                    messages=[{'role': 'user', 'content': f'我的身分是{user_name}，請幫我根據以下內容產生一句恰當的回覆\n{response}'}]
                                 ).choices[0].message.content
-                                reply_msg = f'{response}\n建議回覆:\n{suggest_reply}'
-                                fdb.delete(chat_store_path, group_id)
+                                reply_msg = f'建議回覆:\n{suggest_reply}'
+                                
+                            elif text == 'get_images':
+                                reply_msg = '尚未完成'
+                                
+                            elif text == 'last_state':
+                                group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
+                                reply_msg = '\n'.join(list(group_name2id.keys()))
+                                reply_msg += '\n\n請選擇群組：'
+                                state = 0
+                                
+                            elif text == 'finish':
+                                reply_msg = "已完成"
+                                state = -1
+                """
+                Handle personal reply, menu...
+                """
+                if reply_msg is not None:
+                    line_bot_api.reply_message(
+                        ReplyMessageRequest(
+                            reply_token=event.reply_token,
+                            messages=[TextMessage(text=reply_msg)]
+                        ))
+                fdb.put_async(state_url, None, state)
             else:
                 """
                 Group usage: for getting messages in group
                 """
-                accounts_list = get_all_acounts()
+                sender_id = event.source.user_id
                 group_id = event.source.group_id
-                message_sender = line_bot_api.get_group_member_profile(group_id, user_id).display_name
-                for accout in accounts_list:
+                message_sender = line_bot_api.get_group_member_profile(group_id, sender_id).display_name
+                accounts_list = get_all_acounts()
+                for account in accounts_list:
                     try:
-                        line_bot_api.get_group_member_profile(group_id, accout)
+                        line_bot_api.get_group_member_profile(group_id, account)
                     except:
                         continue
-                    chat_store_path = f'chat/{accout}'
+                    chat_store_path = f'chat/{account}'
+                    if account == sender_id:
+                        fdb.delete(chat_store_path, group_id)
+                        continue
+                    
                     chat_stored = fdb.get(chat_store_path, group_id)
                     
                     if chat_stored is None:
@@ -227,13 +282,6 @@ async def handle_callback(request: Request):
                         
                     chat_history.append({message_sender: text})
                     fdb.put_async(chat_store_path, group_id, chat_history)
-                
-            if reply_msg is not None:
-                await line_bot_api.reply_message(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[TextMessage(text=reply_msg)]
-                    ))
     return 'OK'
 
 if __name__ == "__main__":
