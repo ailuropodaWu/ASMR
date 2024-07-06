@@ -14,21 +14,18 @@ def plot_at_count(at_all_count: dict, at_person_count: dict):
     plt.savefig(buf, format='png')
     return buf.getvalue()
 
-def check_img_content(url):
+def check_img_content(img):
     genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 
-    response = requests.get(url)
-    if response.status_code == 200:
-        image_data = response.content
-        image = Image.open(io.BytesIO(image_data))
+    image_data = img
+    image = Image.open(io.BytesIO(image_data))
 
-        model = genai.GenerativeModel('gemini-pro-vision')
-        response = model.generate_content([
-            "你是一個重點整理機器人。若以下圖片包含文字，請整理文字重點。若沒有包含文字，請概述圖片內容成20字以內文字",
-            image
-        ])
-        return response.text
-    return '未知'
+    model = genai.GenerativeModel('gemini-pro-vision')
+    response = model.generate_content([
+        "你是一個重點整理機器人。若以下圖片包含文字，請整理文字重點。若沒有包含文字，請概述圖片內容成20字以內文字",
+        image
+    ])
+    return response.text
 
 
 def parse_chat_hsitory(chat_history: List[dict]):

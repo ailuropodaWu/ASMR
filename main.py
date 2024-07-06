@@ -15,7 +15,8 @@ from linebot.v3.messaging import (
     ApiClient,
     ReplyMessageRequest,
     TextMessage,
-    ImageMessage)
+    ImageMessage,
+    MessagingApiBlob)
 from linebot.v3.exceptions import (
     InvalidSignatureError
 )
@@ -50,6 +51,7 @@ if channel_access_token is None:
 configuration = Configuration(access_token=channel_access_token)
 api_client = ApiClient(configuration)
 line_bot_api = MessagingApi(api_client)
+line_bot_api_blob = MessagingApiBlob(api_client)
 parser = WebhookParser(channel_secret)
 
 firebase_url = os.getenv('FIREBASE_URL')
@@ -126,8 +128,9 @@ async def handle_callback(request: Request):
                     accounts_list.append(user_id)
                     fdb.put_async(account_path, None, accounts_list)
                     reply_msg = "成功啟用"
+                # TODO
                 # Add some basic introduction
-                reply_msg += "\n" 
+                reply_msg += "\n歡迎使用聊天偷懶系統\n" 
                 state = -1
             elif text == 'get_groups':
                 """
@@ -196,6 +199,7 @@ async def handle_callback(request: Request):
                             """
                             state = 1
                             fdb.put_async(buf_url, None, group_id)
+                            # TODO 
                             # menu of action list
                             reply_msg = "請選擇功能："
                     elif state == 1:
@@ -277,11 +281,8 @@ async def handle_callback(request: Request):
             if msg_type == 'text':
                 text = event.message.text
             elif msg_type == 'image':
-                
-                contentUrl = event.message.content_provider.original_content_url
-                previewUrl = event.message.content_provider.preview_image_url
-                logger.info(contentUrl, previewUrl)
-                text = '圖片:' + check_img_content(contentUrl)
+                img = line_bot_api_blob.get_message_content(event.message.id)
+                text = '圖片:' + check_img_content(img)
             sender_id = event.source.user_id
             group_id = event.source.group_id
             message_sender = line_bot_api.get_group_member_profile(group_id, sender_id).display_name
@@ -292,11 +293,11 @@ async def handle_callback(request: Request):
                 except:
                     continue
                 chat_store_url = f'chat/{account}'
-                unread_img_url = f'img/{account}'
+                # unread_img_url = f'img/{account}'
                 
                 if account == sender_id:
                     fdb.delete(chat_store_url, group_id)
-                    fdb.delete(unread_img_url, group_id)
+                    # fdb.delete(unread_img_url, group_id)
                     continue
                 
                 chat_stored = fdb.get(chat_store_url, group_id)
@@ -305,12 +306,12 @@ async def handle_callback(request: Request):
                 chat_stored.append({message_sender: text})
                 fdb.put_async(chat_store_url, group_id, chat_stored)
                 
-                if msg_type == 'image':
-                    unread_img = fdb.get(unread_img_url, group_id)
-                    if unread_img is None:
-                        unread_img = []
-                    unread_img.append((contentUrl, previewUrl))
-                    fdb.put_async(unread_img_url, group_id, unread_img)
+                # if msg_type == 'image':
+                #     unread_img = fdb.get(unread_img_url, group_id)
+                #     if unread_img is None:
+                #         unread_img = []
+                #     unread_img.append((contentUrl, previewUrl))
+                #     fdb.put_async(unread_img_url, group_id, unread_img)
     return 'OK'
 
 if __name__ == "__main__":
