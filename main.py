@@ -198,11 +198,11 @@ async def handle_callback(request: Request):
                                 response = openai_client.chat.completions.create(
                                     model="gpt-3.5-turbo",
                                     messages=[{'role': 'user', 'content': f'請幫我將以下的對話紀錄內容整理成重點\n{chat_history}'}]
-                                ).choices[0].message
+                                ).choices[0].message.content
                                 suggest_reply =openai_client.chat.completions.create(
                                     model="gpt-3.5-turbo",
                                     messages=[{'role': 'user', 'content': f'我的身分是{user_name}，請幫我產生一句恰當的回覆\n{response}'}]
-                                ).choices[0].message
+                                ).choices[0].message.content
                                 reply_msg = f'{response}\n建議回覆:\n{suggest_reply}'
                                 fdb.delete(chat_store_path, group_id)
             else:
