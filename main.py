@@ -109,6 +109,15 @@ async def handle_callback(request: Request):
                 buf_url = f'buffer/{user_id}'
                 chat_store_path = f'chat/{user_id}'
                 state = fdb.get(state_url, None)
+                all_group_data = fdb.get(chat_store_path, None)
+                action_list = [
+                    "delete_history",
+                    "get_summary",
+                    "get_reply",
+                    "get_images",
+                    "last_state",
+                    "finish"
+                ]
                 if state is None:
                     state = -1
                 
@@ -136,7 +145,6 @@ async def handle_callback(request: Request):
                     if user_id not in accounts_list:
                         reply_msg = "請先啟用"
                     else:
-                        all_group_data = fdb.get(chat_store_path, None)
                         if all_group_data is None:
                             reply_msg = '沒有任何群組的資料'
                         else:
@@ -152,7 +160,6 @@ async def handle_callback(request: Request):
                     if user_id not in accounts_list:
                         reply_msg = "請先啟用"
                     else:
-                        all_group_data = fdb.get(chat_store_path, None)
                         if all_group_data is None:
                             reply_msg = '沒有任何群組的資料'
                         else:
@@ -197,16 +204,8 @@ async def handle_callback(request: Request):
                                 state = 1
                                 fdb.put_async(buf_url, None, group_id)
                                 # menu of action list
-                                reply_msg = "\n"
+                                reply_msg = "請選擇功能："
                         elif state == 1:
-                            action_list = [
-                                "delete_history",
-                                "get_summary",
-                                "get_reply",
-                                "get_images",
-                                "last_state",
-                                "finish"
-                            ]
                             group_id = fdb.get(buf_url, None)
                             try:
                                 text = action_list[int(text) - 1]
