@@ -55,6 +55,18 @@ configuration = Configuration(
 
 async_api_client = ApiClient(configuration)
 line_bot_api = MessagingApi(async_api_client)
+
+rich_menu_request = RichMenuRequest(
+    # size=rich_menu_config["size"],
+    # selected=rich_menu_config["selected"],
+    # name=rich_menu_config["name"],
+    # chatBarText=rich_menu_config["chatBarText"],
+    # areas=rich_menu_config["areas"]
+)
+rich_menu_response = line_bot_api.create_rich_menu(rich_menu_request)
+rich_menu_id = rich_menu_response.rich_menu_id
+line_bot_api.set_default_rich_menu(rich_menu_id)
+
 parser = WebhookParser(channel_secret)
 
 firebase_url = os.getenv('FIREBASE_URL')
@@ -86,16 +98,6 @@ async def handle_callback(request: Request):
         events = parser.parse(body, signature)
     except InvalidSignatureError:
         raise HTTPException(status_code=400, detail="Invalid signature")
-    # rich_menu_request = RichMenuRequest(
-    #     size=rich_menu_config["size"],
-    #     selected=rich_menu_config["selected"],
-    #     name=rich_menu_config["name"],
-    #     chatBarText=rich_menu_config["chatBarText"],
-    #     areas=rich_menu_config["areas"]
-    # )
-    # rich_menu_response = line_bot_api.create_rich_menu(rich_menu_request)
-    # rich_menu_id = rich_menu_response.rich_menu_id
-    # line_bot_api.set_default_rich_menu(rich_menu_id)
 
     for event in events:
         logging.info(event)
