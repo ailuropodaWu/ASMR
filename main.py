@@ -176,12 +176,14 @@ async def handle_callback(request: Request):
                                     at_messages.append(f'{group_name}: {sender}說 {content}')
                         at_messages = '\n'.join(at_messages)
                         at_plot = plot_at_count(at_all, at_person)
+                        
                         at_plot_url = save_to_gcs(f'{user_id}.jpg', at_plot)
                         line_bot_api.reply_message(
                                         ReplyMessageRequest(
                                             reply_token=event.reply_token,
                                             messages=[ImageMessage(originalContentUrl=at_plot_url, previewImageUrl=at_plot_url)]
                                         ))
+                        logger.info(f"@_url: {at_plot_url}")
                         
                         reply_msg = f"@ALL: {at_all}次, @YOU: {at_person}次\n {at_messages}"
                 state = -1
