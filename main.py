@@ -29,6 +29,7 @@ import uvicorn
 import requests
 import google.generativeai as genai
 from firebase import firebase
+from typing import List
 
 
 logging.basicConfig(level=os.getenv('LOG', 'WARNING'))
@@ -59,11 +60,16 @@ gemini_key = os.getenv('GEMINI_API_KEY')
 
 # Initialize the Gemini Pro API
 genai.configure(api_key=gemini_key)
-
+model = genai.GenerativeModel('gemini-1.5-pro')
 
 fdb = firebase.FirebaseApplication(firebase_url, None)
 
-
+def parse_chat_hsitory(chat_history: List[dict]):
+    ret = ''
+    for chat in chat_history:
+        for sender, text in chat.items():
+            ret += f"{sender}: {text}\n"
+    return ret
 
 @app.post("/webhooks/line")
 async def handle_callback(request: Request):
@@ -104,8 +110,13 @@ async def handle_callback(request: Request):
                     if group_id is None:
                         reply_msg = '不存在的群組'
                     else:
+                        """
+                        Exist group -> delete chat history and use openai api (or genimi api) to summarize it.
+                        """
                         chat_history = all_group_data[group_id]
-                        reply_msg = f'{chat_history}'
+                        chat_history = parse_chat_hsitory(chat_history)
+                        response = model.generate_content(f'請幫我將以下的對話紀錄整理成列表式的文字\n{chat_history}')
+                        reply_msg = response.text
             else:
                 group_id = event.source.group_id
                 message_sender = line_bot_api.get_group_member_profile(group_id, user_id).display_name
