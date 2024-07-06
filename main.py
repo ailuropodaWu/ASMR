@@ -89,39 +89,44 @@ async def handle_callback(request: Request):
         user_id = event.source.user_id
 
         msg_type = event.message.type
-        if event.source.type != 'group':
-            # user_chat_path = f'chat/personal/{user_id}'
-            chat_store_path = f'chat/'
-            all_group_data = fdb.get(chat_store_path, None)
-            if all_group_data is None:
-                reply_msg = '沒有任何群組的資料'
-            
-            else:
-                group_name = text
-                group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
-                group_id = group_name2id.get(group_name, None)
-                if group_id is None:
-                    reply_msg = '不存在的群組'
+        if msg_type == 'text':
+            reply_msg = None
+            if event.source.type != 'group':
+                # user_chat_path = f'chat/personal/{user_id}'
+                chat_store_path = f'chat/'
+                all_group_data = fdb.get(chat_store_path, None)
+                if all_group_data is None:
+                    reply_msg = '沒有任何群組的資料'
+                
                 else:
-                    chat_history = all_group_data[group_id]
-                    reply_msg = f'{chat_history}'
-        else:
-            group_id = event.source.group_id
-            chat_store_path = f'chat/{group_id}'
-            chat_history = fdb.get(chat_store_path, None)
-            if chat_history is None:
-                chat_history = []
-            
-            message_sender = line_bot_api.get_group_member_profile(group_id, user_id).display_name
-            chat_history.append({message_sender: text})
-            if msg_type == 'text':
+                    group_name = text
+                    group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
+                    group_id = group_name2id.get(group_name, None)
+                    if group_id is None:
+                        reply_msg = '不存在的群組'
+                    else:
+                        chat_history = all_group_data[group_id]
+                        reply_msg = f'{chat_history}'
+            else:
+                group_id = event.source.group_id
+                message_sender = line_bot_api.get_group_member_profile(group_id, user_id).display_name
+                chat_store_path = f'chat/{group_id}'
+                chat_stored = fdb.get(chat_store_path, None)
+                
+                if chat_stored is None:
+                    chat_history = []
+                else:
+                    chat_history = chat_stored
+                    
+                chat_history.append({message_sender: text})
                 fdb.put_async(chat_store_path, None, chat_history)
                 
-        await line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text=reply_msg)]
-                ))
+            if reply_msg is not None:
+                await line_bot_api.reply_message(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(text=reply_msg)]
+                    ))
     return 'OK'
 
 if __name__ == "__main__":
