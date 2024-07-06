@@ -17,7 +17,8 @@ from linebot.v3.messaging import (
     MessagingApi,
     ApiClient,
     ReplyMessageRequest,
-    TextMessage)
+    TextMessage,
+    RichMenuRequest)
 from linebot.v3.exceptions import (
     InvalidSignatureError
 )
@@ -30,6 +31,8 @@ import requests
 import google.generativeai as genai
 from firebase import firebase
 from typing import List
+
+from config import rich_menu_config
 
 
 logging.basicConfig(level=os.getenv('LOG', 'WARNING'))
@@ -53,6 +56,15 @@ configuration = Configuration(
 async_api_client = ApiClient(configuration)
 line_bot_api = MessagingApi(async_api_client)
 parser = WebhookParser(channel_secret)
+rich_menu_request = RichMenuRequest(
+    size=rich_menu_config["size"],
+    selected=rich_menu_config["selected"],
+    name=rich_menu_config["name"],
+    chatBarText=rich_menu_config["chatBarText"],
+    areas=rich_menu_config["areas"]
+)
+rich_menu_response = line_bot_api.create_rich_menu(rich_menu_request)
+rich_menu_id = rich_menu_response.rich_menu_id
 
 firebase_url = os.getenv('FIREBASE_URL')
 gemini_key = os.getenv('GEMINI_API_KEY')
@@ -111,7 +123,7 @@ async def handle_callback(request: Request):
                         reply_msg = '不存在的群組'
                     else:
                         """
-                        Exist group -> delete chat history and use openai api (or genimi api) to summarize it.
+                        Exist group -> delete chat history and use openai api (or gemini api) to summarize it.
                         """
                         fdb.delete(chat_store_path, group_id)
                         chat_history = all_group_data[group_id]
