@@ -113,6 +113,7 @@ async def handle_callback(request: Request):
                 if text == '__init__':
                     accout_path = ACCOUNT_PATH
                     accounts_list = get_all_acounts()
+                    print(accounts_list)
                     if accout in accounts_list:
                         reply_msg = "已啟用"
                     else:
