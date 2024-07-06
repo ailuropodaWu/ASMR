@@ -7,7 +7,6 @@ if os.getenv('API_ENV') != 'production':
 
     load_dotenv()
 
-
 from fastapi import FastAPI, HTTPException, Request
 from datetime import datetime
 from linebot.v3.webhook import WebhookParser
@@ -26,9 +25,11 @@ from linebot.v3.webhooks import (
     MessageEvent,
     TextMessageContent,
 )
-
 import uvicorn
 import requests
+import google.generativeai as genai
+from firebase import firebase
+
 
 logging.basicConfig(level=os.getenv('LOG', 'WARNING'))
 logger = logging.getLogger(__file__)
@@ -51,11 +52,6 @@ configuration = Configuration(
 async_api_client = ApiClient(configuration)
 line_bot_api = MessagingApi(async_api_client)
 parser = WebhookParser(channel_secret)
-
-
-import google.generativeai as genai
-from firebase import firebase
-
 
 firebase_url = os.getenv('FIREBASE_URL')
 gemini_key = os.getenv('GEMINI_API_KEY')
@@ -98,16 +94,16 @@ async def handle_callback(request: Request):
             all_group_data = fdb.get(chat_store_path, None)
             if all_group_data is None:
                 reply_msg = '沒有任何群組的資料'
-                continue
             
-            group_name = text
-            group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
-            group_id = group_name2id.get(group_name, None)
-            if group_id is None:
-                reply_msg = '不存在的群組'
-                continue
-            chat_history = all_group_data[group_id]
-            reply_msg = f'{chat_history}'
+            else:
+                group_name = text
+                group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
+                group_id = group_name2id.get(group_name, None)
+                if group_id is None:
+                    reply_msg = '不存在的群組'
+                else:
+                    chat_history = all_group_data[group_id]
+                    reply_msg = f'{chat_history}'
         else:
             group_id = event.source.group_id
             chat_store_path = f'chat/'
