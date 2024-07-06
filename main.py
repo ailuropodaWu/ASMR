@@ -277,8 +277,8 @@ async def handle_callback(request: Request):
             if msg_type == 'text':
                 text = event.message.text
             elif msg_type == 'image':
-                contentUrl = event.message.originalContentUrl
-                previewUrl = event.message.previewImageUrl
+                contentUrl = event.message.content_provider.original_content_url
+                previewUrl = event.message.content_provider.preview_image_url
                 text = '圖片:' + check_img_content(contentUrl)
             sender_id = event.source.user_id
             group_id = event.source.group_id
