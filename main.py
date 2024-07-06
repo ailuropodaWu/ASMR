@@ -273,6 +273,7 @@ async def handle_callback(request: Request):
             """
             Group usage: for getting messages in group
             """
+            print(msg_type)
             if msg_type == 'text':
                 text = event.message.text
             elif msg_type == 'image':
