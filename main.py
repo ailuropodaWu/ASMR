@@ -217,13 +217,13 @@ async def handle_callback(request: Request):
                         reply_msg = "不要亂選ㄛ!!!"
                     group_id = fdb.get(buf_url, None)
                     user_name = line_bot_api.get_group_member_profile(group_id, user_id).display_name
+                    chat_history = all_group_data[group_id]
+                    chat_history = parse_chat_hsitory(chat_history)
                         
                     if text == "delete_history":
                         fdb.delete(chat_store_url, group_id)
                         
                     elif text == 'get_summary':
-                        chat_history = all_group_data[group_id]
-                        chat_history = parse_chat_hsitory(chat_history)
                         response = openai_client.chat.completions.create(
                             model="gpt-3.5-turbo",
                             messages=[
