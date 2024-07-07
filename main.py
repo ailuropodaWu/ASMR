@@ -35,6 +35,7 @@ from src import get_action_string, get_welcome_string, get_emojis
 
 
 ACCOUNT_PATH = 'accounts/'
+use_emoji = os.getenv('USE_EMOJI')
 
 logging.basicConfig(level=os.getenv('LOG', 'WARNING'))
 logger = logging.getLogger(__file__)
@@ -198,7 +199,6 @@ async def handle_callback(request: Request):
                         """
                         state = 1
                         fdb.put_async(buf_url, None, group_id)
-                        use_emoji = True
                         actions_string = get_action_string(action_list, use_emoji)
                         reply_msg = actions_string + "\n請選擇功能："
                         if use_emoji:
