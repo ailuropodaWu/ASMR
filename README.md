@@ -54,6 +54,7 @@ Then it would show a action menu after you specified a group name
 - LINE Messaging API account
 - Generative AI API key 
 - Firebase project
+- Google Cloud Storage Bucket
 - .env file with the following environment variables:
   - `API_ENV`
   - `LINE_CHANNEL_SECRET`
