@@ -62,6 +62,7 @@ Then it would show a action menu after you specified a group name
   - `LOG`
   - `FIREBASE_URL`
   - `GEMINI_API_KEY`
+  - `OPENAI_API_KEY`
 
 ## Installation
 
@@ -104,7 +105,8 @@ Then it would show a action menu after you specified a group name
 - `LINE_CHANNEL_ACCESS_TOKEN`: Your LINE channel access token.
 - `LOG`: Logging level (default is `WARNING`).
 - `FIREBASE_URL`: Your Firebase database URL.
-- `GEMINI_API_KEY`: Your Gemini AI API key. 
+- `GEMINI_API_KEY`: Your Gemini AI API key.
+- `OPENAI_API_KEY`: You OpenAI API key.
 
 ## Logging
 
