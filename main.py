@@ -270,6 +270,8 @@ async def handle_callback(request: Request):
             """
             messages = []
             if reply_msg is not None:
+                if len(reply_emoji) == 0:
+                    reply_emoji = None
                 messages.append(TextMessage(text=reply_msg, emojis=reply_emoji))
             if len(reply_img) != 0:
                 messages.extend(reply_img)
