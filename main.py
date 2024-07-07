@@ -29,13 +29,14 @@ import uvicorn
 import google.generativeai as genai
 from openai import OpenAI
 from firebase import firebase
+from distutils.util import strtobool
 
 from src.utils import *
 from src import get_action_string, get_welcome_string, get_emojis
 
 
 ACCOUNT_PATH = 'accounts/'
-use_emoji = os.getenv('USE_EMOJI')
+use_emoji = strtobool(os.getenv("USE_EMOJI", "false"))
 
 logging.basicConfig(level=os.getenv('LOG', 'WARNING'))
 logger = logging.getLogger(__file__)
