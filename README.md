@@ -20,26 +20,26 @@ You can enhance your experience by scanning the QR code to add the LineBOT we've
 
 To use this LineBOT, you need to call the group menu first
 
-<img src="asset/img/get_groups.PNG" alt="group menu" width="200">
+<img src="asset/img/get_groups.PNG" alt="group menu" width="400">
 
 Then it would show a action menu after you specified a group name
 
-<img src="asset/img/get_menu.PNG" alt="action menu" width="200">
+<img src="asset/img/get_menu.PNG" alt="action menu" width="400">
 
 ### Quick summarize messages with @mentions
-<img src="asset/img/summary.PNG" alt="" width="200">
+<img src="asset/img/summary.PNG" alt="" width="400">
 
 ### Summarize unread messages
-<img src="asset/img/get_summary.PNG" alt="" width="200">
+<img src="asset/img/get_summary.PNG" alt="" width="400">
 
 ### Quick check unread images
-<img src="asset/img/get_image.PNG" alt="" width="200">
+<img src="asset/img/get_image.PNG" alt="" width="400">
 
 ### Fetch information from images
-<img src="asset/img/get_image_summary.PNG" alt="" width="200">
+<img src="asset/img/get_image_summary.PNG" alt="" width="400">
 
 ### Help reply to messages
-<img src="asset/img/get_reply.PNG" alt="" width="200">
+<img src="asset/img/get_reply.PNG" alt="" width="400">
 
 ## Features
 
