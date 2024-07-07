@@ -185,6 +185,16 @@ async def handle_callback(request: Request):
                 """
                 mainly handle different states and choices
                 """
+                actions_string = get_action_string(action_list, use_emoji)
+                if use_emoji:
+                    start = 0
+                    cnt = 1
+                    while True:
+                        idx = actions_string.find('\n', start)
+                        if idx == -1:
+                            break
+                        reply_emoji.append(get_emojis(cnt - 1, idx + 1))
+                actions_string += "\n請選擇功能："
                 if state == -1:
                     reply_msg = "請先選擇菜單"
                 elif state == 0:
@@ -200,16 +210,7 @@ async def handle_callback(request: Request):
                         """
                         state = 1
                         fdb.put_async(buf_url, None, group_id)
-                        actions_string = get_action_string(action_list, use_emoji)
-                        reply_msg = actions_string + "\n請選擇功能："
-                        if use_emoji:
-                            start = 0
-                            cnt = 1
-                            while True:
-                                idx = actions_string.find('\n', start)
-                                if idx == -1:
-                                    break
-                                reply_emoji.append(get_emojis(cnt - 1, idx + 1))
+                        reply_msg = actions_string
                 elif state == 1:
                     try:
                         text = action_list[int(text) - 1]
@@ -222,6 +223,8 @@ async def handle_callback(request: Request):
                         
                     if text == "delete_history":
                         fdb.delete(chat_store_url, group_id)
+                        fdb.delete(unread_img_url, group_id)
+                        reply_msg = "已刪除"
                         
                     elif text == 'get_summary':
                         response = openai_client.chat.completions.create(
@@ -266,6 +269,9 @@ async def handle_callback(request: Request):
                     elif text == 'finish':
                         reply_msg = "已完成"
                         state = -1
+                    
+                    if text != 'finish':
+                        reply_msg += f'\n{actions_string}'
             """
             Handle personal reply, menu...
             """
