@@ -8,9 +8,7 @@ action_trans = {
 }
 
 emoji_list = [
-    """
-    (productId, emojiId)
-    """
+    # (productId, emojiId)
     ("5ac21a8c040ab15980c9b43f", "053"), # 1
     ("5ac21a8c040ab15980c9b43f", "054"), # 2
     ("5ac21a8c040ab15980c9b43f", "055"), # 3
