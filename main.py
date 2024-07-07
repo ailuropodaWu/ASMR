@@ -240,7 +240,7 @@ async def handle_callback(request: Request):
                             model="gpt-3.5-turbo",
                             messages=[
                                 {'role': 'system', 'content': '你的身分是負責回覆訊息的機器人'},
-                                {'role': 'user', 'content': f'我的身分是{user_name}，請幫我根據以下內容產生一句15字以內恰當的回覆\n{chat_history}'}]
+                                {'role': 'user', 'content': f'我的身分是{user_name}，請幫我根據以下內容產生一句15字以內，帶有輕鬆風格且恰當的回覆\n{chat_history}'}]
                         ).choices[0].message.content
                         reply_msg = f'建議回覆:\n{suggest_reply}'
                         
@@ -269,7 +269,7 @@ async def handle_callback(request: Request):
                         reply_msg = "已完成"
                         state = -1
                     
-                    if text != 'finish':
+                    if text != 'finish' and reply_msg is not None:
                         reply_msg += f'\n{actions_string}'
             """
             Handle personal reply, menu...

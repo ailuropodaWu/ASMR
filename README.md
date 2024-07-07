@@ -1,19 +1,36 @@
-# FastAPI LINE Bot with Gemini AI and Firebase Integration
+# SITCON Hackthon 2024
+## Team Name: 窩不知道
 
-This project is a FastAPI application that integrates with LINE Messaging API, Gemini AI, and Firebase to handle various types of messages and provide intelligent responses.
+## Introduction
+
+### What is FOMO
+FOMO (*Fear of missing out*) is the apprehension that others are enjoying experiences without you, often amplified by social media, leading to a sense of urgency or anxiety to stay connected or participate in activities to avoid feeling left out.
+
+### Why this project
+To ensure no important information is missed in communications, we proposed this project to help people quickly access and respond to crucial messages, especially when they are unable to read them in detail.
+
+### Start avoid FOMO
+You can enhance your experience by scanning the QR code to add the LineBOT we've created.
+
+## Functions
+### Quick summarize messages you've been mentioned
+### Summarize unread messages
+### Quick check unread images
+### Fetch information from images
+### Help reply to messages
 
 ## Features
 
-- **Health Check Endpoint**: Simple endpoint to check if the service is running.
 - **LINE Webhook Handler**: Handles incoming messages from LINE and responds accordingly.
-- **Gemini AI Integration**: Uses Gemini AI to process and generate responses based on the content of the messages.
+- **Generative AI Integration**: Uses generative AI to process and generate responses based on the content of the messages.
 - **Firebase Integration**: Stores and retrieves chat history from Firebase.
+- **Google Cloud Storage Integration**: Stores and retrieves image.
 
 ## Prerequisites
 
 - Python 3.7+
 - LINE Messaging API account
-- Gemini AI API key
+- Generative AI API key 
 - Firebase project
 - .env file with the following environment variables:
   - `API_ENV`
@@ -22,7 +39,6 @@ This project is a FastAPI application that integrates with LINE Messaging API, G
   - `LOG`
   - `FIREBASE_URL`
   - `GEMINI_API_KEY`
-  - `OPEN_API_KEY`
 
 ## Installation
 
@@ -56,7 +72,6 @@ This project is a FastAPI application that integrates with LINE Messaging API, G
 
 ## Endpoints
 
-- **GET /health**: Health check endpoint to verify if the service is running.
 - **POST /webhooks/line**: Webhook endpoint to handle incoming messages from LINE.
 
 ## Environment Variables
@@ -66,8 +81,7 @@ This project is a FastAPI application that integrates with LINE Messaging API, G
 - `LINE_CHANNEL_ACCESS_TOKEN`: Your LINE channel access token.
 - `LOG`: Logging level (default is `WARNING`).
 - `FIREBASE_URL`: Your Firebase database URL.
-- `GEMINI_API_KEY`: Your Gemini AI API key.
-- `OPEN_API_KEY`: Your Open Data API key.
+- `GEMINI_API_KEY`: Your Gemini AI API key. 
 
 ## Logging
 
