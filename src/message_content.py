@@ -27,8 +27,6 @@ def get_action_string(action_list, use_emoji=False):
         action_str_list = [f'{i+1}. {action_trans[action]}' for i, action in enumerate(action_list)]
     return '\n'.join(action_str_list)
 
-def get_welcome_string():
-    pass
     
 def get_emojis(e_id, index):
     if e_id >= len(emoji_list):

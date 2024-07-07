@@ -32,7 +32,7 @@ from firebase import firebase
 from distutils.util import strtobool
 
 from src.utils import *
-from src import get_action_string, get_welcome_string, get_emojis
+from src import get_action_string, get_emojis
 
 
 ACCOUNT_PATH = 'accounts/'
@@ -138,7 +138,6 @@ async def handle_callback(request: Request):
                     accounts_list.append(user_id)
                     fdb.put_async(account_path, None, accounts_list)
                     reply_msg = "成功啟用"
-                reply_msg += "\n歡迎使用聊天偷懶系統" 
                 state = -1
             elif text == 'get_groups':
                 """
