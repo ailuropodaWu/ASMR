@@ -3,13 +3,13 @@
 
 ## Introduction
 
-### What is FOMO
-FOMO (*Fear of missing out*) is the apprehension that others are enjoying experiences without you, often amplified by social media, leading to a sense of urgency or anxiety to stay connected or participate in activities to avoid feeling left out.
+### What is FoMO
+FoMO (*Fear of missing out*) is the apprehension that others are enjoying experiences without you, often amplified by social media, leading to a sense of urgency or anxiety to stay connected or participate in activities to avoid feeling left out.
 
 ### Why this project
 To ensure no important information is missed in communications, we proposed this project to help people quickly access and respond to crucial messages, especially when they are unable to read them in detail.
 
-### Start avoid FOMO
+### Start avoid FoMO
 You can enhance your experience by scanning the QR code to add the LineBOT we've created.
 
 <img src="asset/img/QRcode.png" alt="QR code" width="200">
