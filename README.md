@@ -12,12 +12,28 @@ To ensure no important information is missed in communications, we proposed this
 ### Start avoid FOMO
 You can enhance your experience by scanning the QR code to add the LineBOT we've created.
 
+![QR code](asset/img/QRcode.png)
+
+![start page](asset/img/start.PNG)
+
 ## Functions
+
+To use this LineBot, you need to call the group menu first
+![group menu](asset/img/get_groups.PNG)
+
+Then it would show a action menu 
+![action menu](asset/img/get_menu.PNG)
+
 ### Quick summarize messages you've been mentioned
+![mentioned summary](asset/img/summary.PNG)
 ### Summarize unread messages
+![text summary](asset/img/get_summary.PNG)
 ### Quick check unread images
+![unread image](asset/img/get_image.PNG)
 ### Fetch information from images
+![image summary](asset/img/get_image_summary.PNG)
 ### Help reply to messages
+![get reply](asset/img/get_reply.PNG)
 
 ## Features
 
