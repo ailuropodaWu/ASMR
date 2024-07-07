@@ -12,28 +12,34 @@ To ensure no important information is missed in communications, we proposed this
 ### Start avoid FOMO
 You can enhance your experience by scanning the QR code to add the LineBOT we've created.
 
-![QR code](asset/img/QRcode.png)
+<img src="asset/img/QRcode.png" alt="QR code" width="200">
 
-![start page](asset/img/start.PNG)
+<img src="asset/img/start.PNG" alt="start page" width="200">
 
 ## Functions
 
-To use this LineBot, you need to call the group menu first
-![group menu](asset/img/get_groups.PNG)
+To use this LineBOT, you need to call the group menu first
 
-Then it would show a action menu 
-![action menu](asset/img/get_menu.PNG)
+<img src="asset/img/get_groups.PNG" alt="group menu" width="200">
 
-### Quick summarize messages you've been mentioned
-![mentioned summary](asset/img/summary.PNG)
+Then it would show a action menu after you specified a group name
+
+<img src="asset/img/get_menu.PNG" alt="action menu" width="200">
+
+### Quick summarize messages with @mentions
+<img src="asset/img/summary.PNG" alt="" width="200">
+
 ### Summarize unread messages
-![text summary](asset/img/get_summary.PNG)
+<img src="asset/img/get_summary.PNG" alt="" width="200">
+
 ### Quick check unread images
-![unread image](asset/img/get_image.PNG)
+<img src="asset/img/get_image.PNG" alt="" width="200">
+
 ### Fetch information from images
-![image summary](asset/img/get_image_summary.PNG)
+<img src="asset/img/get_image_summary.PNG" alt="" width="200">
+
 ### Help reply to messages
-![get reply](asset/img/get_reply.PNG)
+<img src="asset/img/get_reply.PNG" alt="" width="200">
 
 ## Features
 
