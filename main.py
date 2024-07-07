@@ -30,7 +30,8 @@ import google.generativeai as genai
 from openai import OpenAI
 from firebase import firebase
 
-from utils import *
+from src.utils import *
+from src import get_action_string, get_welcome_string, get_emojis
 
 
 ACCOUNT_PATH = 'accounts/'
@@ -89,9 +90,10 @@ async def handle_callback(request: Request):
         if not isinstance(event.message, TextMessageContent) and not isinstance(event.message, ImageMessageContent):
             continue
         msg_type = event.message.type
-        logger.info(msg_type)
         reply_msg = None
         reply_img = []
+        reply_emoji = []
+        
         if event.source.type != 'group':
             """
             Personal usage: to summarize, reply to for the group messagges
@@ -115,162 +117,160 @@ async def handle_callback(request: Request):
                 "last_state",
                 "finish"
             ]
+            
             if state is None:
                 state = -1
+            accounts_list = get_all_acounts()
+            if text != '__init__' and user_id not in accounts_list:
+                reply_msg = "請先啟用"
             
-            if text == '__init__':
+            elif text == '__init__':
                 """
                 init the account
                 """
                 account_path = ACCOUNT_PATH
                 accounts_list = get_all_acounts()
-                logger.info(accounts_list)
                 if user_id in accounts_list:
                     reply_msg = "已啟用"
                 else:
                     accounts_list.append(user_id)
                     fdb.put_async(account_path, None, accounts_list)
                     reply_msg = "成功啟用"
-                # TODO
-                # Add some basic introduction
-                reply_msg += "\n歡迎使用聊天偷懶系統\n" 
+                reply_msg += "\n歡迎使用聊天偷懶系統" 
                 state = -1
             elif text == 'get_groups':
                 """
                 get the group information
                 """
-                accounts_list = get_all_acounts()
-                if user_id not in accounts_list:
-                    reply_msg = "請先啟用"
+                if all_group_data is None:
+                    reply_msg = '沒有任何群組的資料'
+                    state = -1
                 else:
-                    if all_group_data is None:
-                        reply_msg = '沒有任何群組的資料'
-                    else:
-                        group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
-                        reply_msg = '\n'.join(list(group_name2id.keys()))
-                        reply_msg += '\n\n請選擇群組：'
-                        state = 0
+                    group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
+                    reply_msg = '\n'.join(list(group_name2id.keys()))
+                    reply_msg += '\n請選擇群組：'
+                    state = 0
             elif text == 'summary':
-                accounts_list = get_all_acounts()
                 at_all = {}
                 at_person = {}
                 at_messages = []
-                if user_id not in accounts_list:
-                    reply_msg = "請先啟用"
+                if all_group_data is None:
+                    reply_msg = '沒有任何群組的資料'
                 else:
-                    if all_group_data is None:
-                        reply_msg = '沒有任何群組的資料'
-                    else:
-                        for group_id, chat_history in all_group_data.items():
-                            group_name = line_bot_api.get_group_summary(group_id).group_name
-                            user_name = line_bot_api.get_group_member_profile(group_id, user_id).display_name
-                            at_all[group_name] = 0
-                            at_person[group_name] = 0
-                            for chat in chat_history:
-                                for sender, content in chat.items():
-                                    if '@All ' in content:
-                                        at_all[group_name] += 1
-                                    elif f'@{user_name} ' in content:
-                                        at_person[group_name] += 1
-                                    else:
-                                        continue
-                                    at_messages.append(f'{group_name}: {sender}說 {content}')
-                        at_messages = '\n'.join(at_messages)
-                        at_plot = plot_at_count(at_all, at_person)
-                        
-                        at_plot_url = save_to_gcs(f'{user_id}.jpg', at_plot)
-                        logger.info(f"@_url: {at_plot_url}")
-                        reply_img.append(ImageMessage(originalContentUrl=at_plot_url, previewImageUrl=at_plot_url))
-                        reply_msg = f"@ALL: {at_all}次, @YOU: {at_person}次\n {at_messages}"
+                    for group_id, chat_history in all_group_data.items():
+                        group_name = line_bot_api.get_group_summary(group_id).group_name
+                        user_name = line_bot_api.get_group_member_profile(group_id, user_id).display_name
+                        at_all[group_name] = 0
+                        at_person[group_name] = 0
+                        for chat in chat_history:
+                            for sender, content in chat.items():
+                                if '@All ' in content:
+                                    at_all[group_name] += 1
+                                elif f'@{user_name} ' in content:
+                                    at_person[group_name] += 1
+                                else:
+                                    continue
+                                at_messages.append(f'{group_name}: {sender}說 {content}')
+                    at_messages = '\n'.join(at_messages)
+                    at_plot = plot_at_count(at_all, at_person)
+                    
+                    at_plot_url = save_to_gcs(f'{user_id}.jpg', at_plot)
+                    logging.info(f"@_url: {at_plot_url}")
+                    reply_img.append(ImageMessage(originalContentUrl=at_plot_url, previewImageUrl=at_plot_url))
+                    reply_msg = f"@ALL: {sum(at_all.values())}次, @YOU: {sum(at_person.values())}次\n {at_messages}"
                 state = -1
             else:
                 """
                 mainly handle different states and choices
                 """
-                accounts_list = get_all_acounts()
-                if user_id not in accounts_list:
-                    reply_msg = "請先啟用"
-                else:
-                    if state == -1:
-                        reply_msg = "請先選擇菜單"
-                    elif state == 0:
-                        group_name = text
-                        group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
-                        group_id = group_name2id.get(group_name, None)
-                        if group_id is None:
-                            reply_msg = '不存在的群組'
-                            state = -1
+                if state == -1:
+                    reply_msg = "請先選擇菜單"
+                elif state == 0:
+                    group_name = text
+                    group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
+                    group_id = group_name2id.get(group_name, None)
+                    if group_id is None:
+                        reply_msg = '不存在的群組'
+                        state = -1
+                    else:
+                        """
+                        Exist group -> delete chat history and use openai api (or gemini api) to summarize it.
+                        """
+                        state = 1
+                        fdb.put_async(buf_url, None, group_id)
+                        use_emoji = True
+                        actions_string = get_action_string(action_list, use_emoji)
+                        reply_msg = actions_string + "\n請選擇功能："
+                        if use_emoji:
+                            start = 0
+                            cnt = 1
+                            while True:
+                                idx = actions_string.find('\n', start)
+                                if idx == -1:
+                                    break
+                                reply_emoji.append(get_emojis(cnt - 1, idx + 1))
+                elif state == 1:
+                    try:
+                        text = action_list[int(text) - 1]
+                    except:
+                        reply_msg = "不要亂選ㄛ!!!"
+                    group_id = fdb.get(buf_url, None)
+                    user_name = line_bot_api.get_group_member_profile(group_id, user_id).display_name
+                        
+                    if text == "delete_history":
+                        fdb.delete(chat_store_url, group_id)
+                        
+                    elif text == 'get_summary':
+                        chat_history = all_group_data[group_id]
+                        chat_history = parse_chat_hsitory(chat_history)
+                        response = openai_client.chat.completions.create(
+                            model="gpt-3.5-turbo",
+                            messages=[
+                                {'role': 'system', 'content': '你的身分是一個整理聊天紀錄的機器人'},
+                                {'role': 'user', 'content': f'請幫我將以下的對話紀錄內容簡短的整理成20字以內的重點\n{chat_history}'}
+                            ]
+                        ).choices[0].message.content
+                        reply_msg = f'{response}'
+                        
+                    elif text == 'get_reply':
+                        suggest_reply =openai_client.chat.completions.create(
+                            model="gpt-3.5-turbo",
+                            messages=[
+                                {'role': 'system', 'content': '你的身分是負責回覆訊息的機器人'},
+                                {'role': 'user', 'content': f'我的身分是{user_name}，請幫我根據以下內容產生一句15字以內，符合我的風格且恰當的回覆\n{chat_history}'}]
+                        ).choices[0].message.content
+                        reply_msg = f'建議回覆:\n{suggest_reply}'
+                        
+                    elif text == 'get_images':
+                        unread_img = fdb.get(unread_img_url, group_id)
+                        if unread_img is None:
+                            reply_msg = "沒有未讀取的照片"
                         else:
-                            """
-                            Exist group -> delete chat history and use openai api (or gemini api) to summarize it.
-                            """
-                            state = 1
-                            fdb.put_async(buf_url, None, group_id)
-                            # TODO 
-                            # menu of action list
-                            reply_msg = "請選擇功能："
-                    elif state == 1:
-                        group_id = fdb.get(buf_url, None)
-                        try:
-                            text = action_list[int(text) - 1]
-                        except:
-                            reply_msg = "不要亂選ㄛ!!!"
-                            
-                        if text == "delete_history":
-                            fdb.delete(chat_store_url, group_id)
-                            
-                        elif text == 'get_summary':
-                            user_name = line_bot_api.get_group_member_profile(group_id, user_id).display_name
-                            chat_history = all_group_data[group_id]
-                            chat_history = parse_chat_hsitory(chat_history)
-                            response = openai_client.chat.completions.create(
-                                model="gpt-3.5-turbo",
-                                messages=[
-                                    {'role': 'system', 'content': '你的身分是一個整理聊天紀錄的機器人'},
-                                    {'role': 'user', 'content': f'請幫我將以下的對話紀錄內容簡短的整理成20字以內的重點\n{chat_history}'}
-                                ]
-                            ).choices[0].message.content
-                            reply_msg = f'{response}'
-                            
-                        elif text == 'get_reply':
-                            suggest_reply =openai_client.chat.completions.create(
-                                model="gpt-3.5-turbo",
-                                messages=[
-                                    {'role': 'system', 'content': '你的身分是負責回覆訊息的機器人'},
-                                    {'role': 'user', 'content': f'我的身分是{user_name}，請幫我根據以下內容產生一句15字以內，符合我的風格且恰當的回覆\n{chat_history}'}]
-                            ).choices[0].message.content
-                            reply_msg = f'建議回覆:\n{suggest_reply}'
-                            
-                        elif text == 'get_images':
-                            unread_img = fdb.get(unread_img_url, group_id)
-                            if unread_img is None:
-                                reply_msg = "沒有未讀取的照片"
-                            else:
-                                max_reply = 5
-                                cnt = 0
-                                for img_url in unread_img:
-                                    reply_img.append(ImageMessage(originalContentUrl=img_url, previewImageUrl=img_url))
-                                    cnt += 1
-                                    if cnt == max_reply:
-                                        break
-                                unread_img = unread_img[cnt:]
-                                fdb.put_async(unread_img_url, group_id, unread_img)
-                            
-                        elif text == 'last_state':
-                            group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
-                            reply_msg = '\n'.join(list(group_name2id.keys()))
-                            reply_msg += '\n\n請選擇群組：'
-                            state = 0
-                            
-                        elif text == 'finish':
-                            reply_msg = "已完成"
-                            state = -1
+                            max_reply = 5
+                            cnt = 0
+                            for img_url in unread_img:
+                                reply_img.append(ImageMessage(originalContentUrl=img_url, previewImageUrl=img_url))
+                                cnt += 1
+                                if cnt == max_reply:
+                                    break
+                            unread_img = unread_img[cnt:]
+                            fdb.put_async(unread_img_url, group_id, unread_img)
+                        
+                    elif text == 'last_state':
+                        group_name2id = {line_bot_api.get_group_summary(group_id).group_name: group_id for group_id in all_group_data.keys()}
+                        reply_msg = '\n'.join(list(group_name2id.keys()))
+                        reply_msg += '\n請選擇群組：'
+                        state = 0
+                        
+                    elif text == 'finish':
+                        reply_msg = "已完成"
+                        state = -1
             """
             Handle personal reply, menu...
             """
             messages = []
             if reply_msg is not None:
-                messages.append(TextMessage(text=reply_msg))
+                messages.append(TextMessage(text=reply_msg, emojis=reply_emoji))
             if len(reply_img) != 0:
                 messages.extend(reply_img)
             if len(messages) != 0:
@@ -295,7 +295,7 @@ async def handle_callback(request: Request):
                 img = line_bot_api_blob.get_message_content(img_id)
                 img_url = save_to_gcs(f'{img_id}.jpg', img)
                 text = '圖片:' + check_img_content(img)
-                logger.info(img_url, text)
+                logging.info(img_url, text)
             for account in accounts_list:
                 try:
                     line_bot_api.get_group_member_profile(group_id, account)
