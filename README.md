@@ -1,4 +1,4 @@
-# SITCON Hackthon 2024
+# SITCON Hackathon 2024
 ## Team Name: 窩不知道
 
 ## Introduction
@@ -106,7 +106,7 @@ Then it would show a action menu after you specified a group name
 - `LOG`: Logging level (default is `WARNING`).
 - `FIREBASE_URL`: Your Firebase database URL.
 - `GEMINI_API_KEY`: Your Gemini AI API key.
-- `OPENAI_API_KEY`: You OpenAI API key.
+- `OPENAI_API_KEY`: Your OpenAI API key.
 
 ## Logging
 
