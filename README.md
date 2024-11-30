@@ -1,5 +1,5 @@
 # SITCON Hackathon 2024
-## Project Name: Assistant of Summarize Message and Reply
+## Project Name: ASsistant for Summarize and Reply
 ## Team Name: 窩不知道
 
 ## Introduction
